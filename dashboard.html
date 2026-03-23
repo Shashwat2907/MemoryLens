@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MemoryLens Dashboard — Live face recognition, profile management, and settings.">
+  <title>MemoryLens — Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============== LAYOUT ============== */
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ============== SIDEBAR ============== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 68px; /* Fixed narrow sidebar */
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 0;
+      background: rgba(10, 10, 12, 0.4); /* More transparent for 'floated' feel */
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* -- Top zone: Logo -- */
+    .sidebar-top {
+      margin-bottom: 4rem;
+    }
+
+    .sidebar-logo .logo-icon {
+      color: var(--primary);
+      width: 28px;
+      height: 28px;
+    }
+
+    /* -- Navigation droplets -- */
+    .nav-droplets {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      position: relative;
+    }
+
+    .droplet-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .droplet {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, background;
+      cursor: pointer;
+    }
+
+    .droplet:hover, .droplet.active {
+      background: rgba(133, 173, 255, 0.15);
+      border-color: rgba(133, 173, 255, 0.3);
+      color: var(--text-primary);
+      box-shadow: 0 0 20px rgba(133, 173, 255, 0.2);
+    }
+
+    .droplet i {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* -- Bottom zone: profile + logout -- */
+    .sidebar-bottom {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      margin-top: auto;
+    }
+
+    .logout-btn {
+      color: var(--text-secondary);
+      opacity: 0.6;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .logout-btn:hover {
+      color: #ff8a8a;
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+
+    .logout-btn i {
+      width: 20px;
+      height: 20px;
+    }
+
+    .profile-trigger {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      border-radius: var(--radius-pill);
+      transition: background 0.3s ease;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .profile-trigger:hover {
+      background: rgba(44, 44, 47, 0.5);
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--tertiary));
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--bg-base);
+    }
+
+    .user-name {
+      font-size: 0.8rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      transition: opacity 0.3s ease;
+    }
+
+    .sidebar.collapsed .profile-trigger {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      justify-content: center;
+      border-radius: 50%;
+    }
+
+    .sidebar.collapsed .user-name {
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+    }
+
+    /* Profile popover */
+    .profile-popover {
+      position: absolute;
+      bottom: calc(100% + 0.5rem);
+      left: 0;
+      width: 200px;
+      padding: 0.5rem;
+      border-radius: 1.25rem;
+      background: rgba(30, 30, 33, 0.95);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid var(--ghost-border);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(6px);
+      transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+      z-index: 100;
+    }
+
+    .profile-popover.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .sidebar.collapsed .profile-popover {
+      left: calc(100% + 0.5rem);
+      bottom: 0;
+    }
+
+    .popover-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0.85rem;
+      border-radius: 0.75rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: background 0.25s ease, color 0.25s ease;
+      width: 100%;
+      text-align: left;
+    }
+
+    .popover-item:hover {
+      background: rgba(133, 173, 255, 0.08);
+      color: var(--text-primary);
+    }
+
+    .popover-item.danger:hover {
+      background: rgba(255, 100, 100, 0.08);
+      color: #ff8a8a;
+    }
+
+    .popover-item i {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .popover-divider {
+      height: 1px;
+      background: var(--ghost-border);
+      margin: 0.35rem 0.5rem;
+    }
+
+    /* ============== MAIN CONTENT ============== */
+    .main-content {
+      flex: 1;
+      margin-left: 240px;
+      padding: 2.5rem 3rem;
+      transition: margin-left 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .sidebar.collapsed ~ .main-content {
+      margin-left: 56px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.3); }
+      50% { opacity: 0.6; box-shadow: 0 0 0 5px rgba(74, 222, 128, 0); }
+    }
+
+    /* ============== LIVE VIEW ============== */
+    .live-view-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .webcam-placeholder {
+      aspect-ratio: 16 / 10;
+      border-radius: var(--radius-card);
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px dashed rgba(72, 71, 74, 0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .webcam-placeholder .placeholder-icon {
+      width: 40px;
+      height: 40px;
+      color: rgba(172, 170, 173, 0.2);
+    }
+
+    .webcam-placeholder .placeholder-text {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      opacity: 0.4;
+    }
+
+    .webcam-placeholder .powered-by {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      opacity: 0.25;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .last-recognized {
+      padding: 1.75rem;
+    }
+
+    .last-recognized .lr-header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .lr-header .lr-icon {
+      width: 14px;
+      height: 14px;
+      color: var(--primary);
+    }
+
+    .lr-header span {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .lr-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .lr-meta {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .lr-info {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 0.3rem;
+    }
+
+    .lr-info strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* ============== PROFILES PAGE ============== */
+    .page-section {
+      display: none;
+    }
+
+    .page-section.active {
+      display: block;
+    }
+
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .profile-card {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .profile-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--bg-base);
+    }
+
+    .profile-avatar.a1 { background: linear-gradient(135deg, #85adff, #6c9fff); }
+    .profile-avatar.a2 { background: linear-gradient(135deg, #fab0ff, #d98aff); }
+    .profile-avatar.a3 { background: linear-gradient(135deg, #80e8c0, #5ccfa5); }
+    .profile-avatar.a4 { background: linear-gradient(135deg, #ffd080, #ffb84d); }
+
+    .profile-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.2rem;
+    }
+
+    .profile-relation {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.65rem;
+    }
+
+    .profile-badge {
+      display: inline-block;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-pill);
+      background: rgba(133, 173, 255, 0.08);
+      color: var(--primary);
+      font-size: 0.68rem;
+      font-weight: 500;
+    }
+
+    .add-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 2rem;
+      border: 1.5px dashed rgba(133, 173, 255, 0.15);
+      transition: border-color 0.35s ease, background 0.35s ease;
+      min-height: 200px;
+    }
+
+    .add-card:hover {
+      border-color: rgba(133, 173, 255, 0.4);
+      background: rgba(133, 173, 255, 0.03);
+    }
+
+    .add-card .add-icon {
+      width: 36px;
+      height: 36px;
+      color: var(--primary);
+      opacity: 0.7;
+    }
+
+    .add-card span {
+      color: var(--primary);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    /* ============== ADD PERSON PAGE ============== */
+    .add-form-card {
+      max-width: 560px;
+      padding: 2.5rem;
+    }
+
+    .add-form-card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.75rem;
+    }
+
+    .form-row {
+      margin-bottom: 1.15rem;
+    }
+
+    .form-row label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    .form-row input,
+    .form-row textarea {
+      width: 100%;
+      padding: 0.8rem 1.15rem;
+      background: rgba(14, 14, 16, 0.55);
+      border: 1px solid transparent;
+      border-radius: 1.25rem;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-family: var(--font-family);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      resize: vertical;
+    }
+
+    .form-row input:focus,
+    .form-row textarea:focus {
+      border-color: rgba(133, 173, 255, 0.25);
+      box-shadow: var(--focus-glow);
+    }
+
+    .form-row input::placeholder,
+    .form-row textarea::placeholder {
+      color: rgba(172, 170, 173, 0.35);
+    }
+
+    .photo-dropzone {
+      border: 1.5px dashed rgba(72, 71, 74, 0.25);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 1.25rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .photo-dropzone:hover {
+      border-color: rgba(133, 173, 255, 0.25);
+    }
+
+    .photo-dropzone .dz-icon {
+      width: 32px;
+      height: 32px;
+      color: var(--text-secondary);
+      margin: 0 auto 0.6rem;
+      opacity: 0.4;
+    }
+
+    .form-submit-row {
+      margin-top: 1.75rem;
+    }
+
+    /* ============== SETTINGS PAGE ============== */
+    .settings-card {
+      max-width: 560px;
+      padding: 2.5rem;
+    }
+
+    .settings-card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.75rem;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 0;
+    }
+
+    .setting-item + .setting-item {
+      border-top: 1px solid rgba(72, 71, 74, 0.08);
+    }
+
+    .setting-info h4 {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      margin-bottom: 0.15rem;
+    }
+
+    .setting-info p {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .toggle-switch {
+      width: 40px;
+      height: 22px;
+      border-radius: 11px;
+      background: rgba(72, 71, 74, 0.35);
+      position: relative;
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .toggle-switch.on {
+      background: var(--primary);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--text-primary);
+      top: 3px;
+      left: 3px;
+      transition: transform 0.3s ease;
+    }
+
+    .toggle-switch.on::after {
+      transform: translateX(18px);
+    }
+
+    /* ============== Responsive ============== */
+    @media (max-width: 1024px) {
+      .live-view-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 56px;
+        padding: 1.5rem 0.4rem;
+      }
+
+      .sidebar .sidebar-logo .logo-wordmark {
+        opacity: 0;
+        width: 0;
+      }
+
+      .sidebar .droplet {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+        margin: 0 auto;
+      }
+
+      .sidebar .droplet .drop-label {
+        opacity: 0;
+        width: 0;
+      }
+
+      .sidebar .profile-trigger {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        justify-content: center;
+        border-radius: 50%;
+      }
+
+      .sidebar .user-name {
+        opacity: 0;
+        width: 0;
+      }
+
+      .main-content {
+        margin-left: 56px;
+        padding: 2rem 1.25rem;
+      }
+
+      .profiles-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard">
+
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Top: Logo -->
+      <div class="sidebar-top">
+        <div class="sidebar-logo">
+          <i data-feather="eye" class="logo-icon"></i>
+        </div>
+      </div>
+
+      <!-- Mid: Nav Droplets (Free floating, Bubbles on hover) -->
+      <div class="nav-droplets" id="nav-droplets">
+        <div class="droplet-container">
+          <div class="droplet active" data-page="live-view" onclick="switchPage('live-view', this)">
+            <i data-feather="video"></i>
+          </div>
+          <span class="bubble-label">Live View</span>
+        </div>
+        
+        <div class="droplet-container">
+          <div class="droplet" data-page="profiles" onclick="switchPage('profiles', this)">
+            <i data-feather="users"></i>
+          </div>
+          <span class="bubble-label">Profiles</span>
+        </div>
+
+        <div class="droplet-container">
+          <div class="droplet" data-page="add-person" onclick="switchPage('add-person', this)">
+            <i data-feather="plus-circle"></i>
+          </div>
+          <span class="bubble-label">Add Person</span>
+        </div>
+      </div>
+
+      <!-- Bottom: Profile + Logout -->
+      <div class="sidebar-bottom">
+        <div class="profile-popover" id="profile-popover">
+          <button class="popover-item" onclick="switchPage('settings', null)">
+            <i data-feather="settings"></i> Settings
+          </button>
+          <button class="popover-item">
+            <i data-feather="help-circle"></i> Help
+          </button>
+        </div>
+
+        <div class="droplet-container">
+          <button class="profile-trigger" id="profile-trigger" onclick="togglePopover()">
+            <div class="user-avatar">JS</div>
+          </button>
+          <span class="bubble-label">Jaya S.</span>
+        </div>
+
+        <div class="droplet-container">
+          <a href="login.html" class="logout-btn">
+            <i data-feather="log-out"></i>
+          </a>
+          <span class="bubble-label">Logout</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content" id="main-content">
+
+      <!-- Live View -->
+      <div class="page-section active" id="page-live-view">
+        <div class="page-header">
+          <h1 class="page-title">Live View</h1>
+          <div class="status-indicator">
+            <div class="status-dot"></div>
+            <span>Camera Active</span>
+          </div>
+        </div>
+        <div class="live-view-grid">
+          <div class="webcam-placeholder">
+            <i data-feather="video" class="placeholder-icon"></i>
+            <span class="placeholder-text">Webcam feed will appear here</span>
+            <span class="powered-by">Powered by OpenCV + face_recognition</span>
+          </div>
+          <div class="last-recognized glass">
+            <div class="lr-header">
+              <i data-feather="clock" class="lr-icon"></i>
+              <span>Last Recognized</span>
+            </div>
+            <div class="lr-name">Priya Sharma</div>
+            <div class="lr-meta">Daughter · Last visit: 2 days ago</div>
+            <div class="lr-info"><strong>Last discussed:</strong> Your medications and Sunday lunch</div>
+            <div class="lr-info"><strong>Reminder:</strong> She is bringing food tomorrow</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profiles -->
+      <div class="page-section" id="page-profiles">
+        <div class="page-header">
+          <h1 class="page-title">Profiles</h1>
+        </div>
+        <div class="profiles-grid">
+          <div class="profile-card glass">
+            <div class="profile-avatar a1">PS</div>
+            <div class="profile-name">Priya Sharma</div>
+            <div class="profile-relation">Daughter</div>
+            <span class="profile-badge">Last visit: 2 days ago</span>
+          </div>
+          <div class="profile-card glass">
+            <div class="profile-avatar a2">RS</div>
+            <div class="profile-name">Rahul Sharma</div>
+            <div class="profile-relation">Son</div>
+            <span class="profile-badge">Last visit: 5 days ago</span>
+          </div>
+          <div class="profile-card glass">
+            <div class="profile-avatar a3">AK</div>
+            <div class="profile-name">Anita Kumar</div>
+            <div class="profile-relation">Caregiver</div>
+            <span class="profile-badge">Last visit: Today</span>
+          </div>
+          <div class="profile-card glass">
+            <div class="profile-avatar a4">DM</div>
+            <div class="profile-name">Dr. Mehta</div>
+            <div class="profile-relation">Doctor</div>
+            <span class="profile-badge">Last visit: 1 week ago</span>
+          </div>
+          <div class="add-card glass" onclick="switchPage('add-person', document.querySelector('[data-page=add-person]'))">
+            <i data-feather="plus-circle" class="add-icon"></i>
+            <span>Add New Person</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Person -->
+      <div class="page-section" id="page-add-person">
+        <div class="page-header">
+          <h1 class="page-title">Add Person</h1>
+        </div>
+        <div class="add-form-card glass">
+          <h2>Register a new face</h2>
+          <form onsubmit="event.preventDefault();">
+            <div class="form-row">
+              <label for="person-name">Full Name</label>
+              <input type="text" id="person-name" placeholder="e.g. Priya Sharma">
+            </div>
+            <div class="form-row">
+              <label for="person-relation">Relationship</label>
+              <input type="text" id="person-relation" placeholder="e.g. Daughter">
+            </div>
+            <div class="form-row">
+              <label for="person-last-visit">Last Visit Date</label>
+              <input type="date" id="person-last-visit">
+            </div>
+            <div class="form-row">
+              <label for="person-topic">Last Topic Discussed</label>
+              <input type="text" id="person-topic" placeholder="e.g. Sunday lunch plans">
+            </div>
+            <div class="form-row">
+              <label for="person-reminder">Reminder</label>
+              <textarea id="person-reminder" rows="2" placeholder="e.g. She is bringing food tomorrow"></textarea>
+            </div>
+            <div class="photo-dropzone">
+              <i data-feather="upload-cloud" class="dz-icon"></i>
+              <p>Drag & drop photos here, or click to browse</p>
+              <p style="font-size:0.7rem; margin-top:0.4rem; opacity:0.45;">Supports JPG, PNG · Multiple photos recommended for accuracy</p>
+            </div>
+            <div class="form-submit-row">
+              <button type="submit" class="btn-primary">Save Profile</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="page-section" id="page-settings">
+        <div class="page-header">
+          <h1 class="page-title">Settings</h1>
+        </div>
+        <div class="settings-card glass">
+          <h2>Preferences</h2>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Auto-detect faces</h4>
+              <p>Automatically recognize faces from webcam feed</p>
+            </div>
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Show overlay automatically</h4>
+              <p>Display recognition overlay without manual trigger</p>
+            </div>
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Confidence threshold</h4>
+              <p>Only show overlay when match confidence exceeds 85%</p>
+            </div>
+            <div class="toggle-switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Sound notifications</h4>
+              <p>Play a soft sound when a face is recognized</p>
+            </div>
+            <div class="toggle-switch" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <script>
+    feather.replace({ 'stroke-width': 1.5 });
+
+    // ============ PAGE SWITCHING ============
+    function switchPage(pageId, dropletEl) {
+      document.querySelectorAll('.droplet').forEach(d => d.classList.remove('active'));
+      if (dropletEl) dropletEl.classList.add('active');
+
+      document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById('page-' + pageId);
+      if (target) {
+        target.classList.add('active');
+        gsap.fromTo(target, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' });
+      }
+      closePopover();
+    }
+
+    // ============ DROplet PHYSICS (Organic Float) ============
+    function initDropletPhysics() {
+      document.querySelectorAll('.droplet').forEach((d, i) => {
+        // Independent, unique floating for each droplet
+        const durY = 3.5 + Math.random() * 2;
+        const durX = 4 + Math.random() * 2;
+        const yAmt = 6 + Math.random() * 4;
+        const xAmt = 3 + Math.random() * 3;
+
+        // Vertical drift
+        gsap.to(d, {
+          y: yAmt,
+          duration: durY,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: i * 0.4
+        });
+
+        // Horizontal drift
+        gsap.to(d, {
+          x: xAmt,
+          duration: durX,
+          repeat: -1,
+          yoyo: true,
+          ease: "sine.inOut",
+          delay: i * 0.7
+        });
+      });
+    }
+
+    // ============ PROFILE POPOVER ============
+    const popover = document.getElementById('profile-popover');
+    let popoverOpen = false;
+
+    function togglePopover() {
+      popoverOpen = !popoverOpen;
+      popover.classList.toggle('open', popoverOpen);
+    }
+
+    function closePopover() {
+      popoverOpen = false;
+      popover.classList.remove('open');
+    }
+
+    // Close popover on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sidebar-bottom') && popoverOpen) {
+        closePopover();
+      }
+    });
+
+    // ============ ENTRANCE ============
+    window.addEventListener('load', () => {
+      initDropletPhysics();
+      gsap.fromTo('.sidebar', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' });
+      gsap.from('.droplet-container', { opacity: 0, scale: 0.8, stagger: 0.1, duration: 0.6, ease: 'back.out(1.7)', delay: 0.3 });
+    });
+  </script>
+</body>
+</html>

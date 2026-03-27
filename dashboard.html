@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -47,6 +47,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 1.5rem;
       position: relative;
     }
@@ -234,8 +235,11 @@
     /* ============== MAIN CONTENT ============== */
     .main-content {
       flex: 1;
-      margin-left: 240px;
-      padding: 2.5rem 3rem;
+      margin-left: 68px;
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       transition: margin-left 0.55s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -279,10 +283,8 @@
 
     /* ============== LIVE VIEW ============== */
     .live-view-grid {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 1.5rem;
-      align-items: start;
+      display: block;
+      width: 100%;
     }
 
     .webcam-placeholder {
@@ -370,6 +372,8 @@
     /* ============== PROFILES PAGE ============== */
     .page-section {
       display: none;
+      width: 100%;
+      max-width: 1400px;
     }
 
     .page-section.active {
@@ -377,12 +381,14 @@
     }
 
     .profiles-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1.25rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 1.5rem;
     }
 
     .profile-card {
+      width: 220px;
       padding: 2rem 1.5rem;
       text-align: center;
       transition: transform 0.35s ease, box-shadow 0.35s ease;
@@ -435,6 +441,7 @@
     }
 
     .add-card {
+      width: 220px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -444,6 +451,7 @@
       border: 1.5px dashed rgba(133, 173, 255, 0.15);
       transition: border-color 0.35s ease, background 0.35s ease;
       min-height: 200px;
+      border-radius: var(--radius-card);
     }
 
     .add-card:hover {
@@ -464,10 +472,139 @@
       font-size: 0.9rem;
     }
 
+    /* ============== OVERLAYS & ANIMATIONS ============== */
+    .profile-card {
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .profile-card.editing {
+      transform: scale(1.15) !important;
+      z-index: 100;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .card-options-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(14, 14, 16, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 10;
+    }
+
+    .profile-card:hover .card-options-overlay,
+    .profile-card.options-active .card-options-overlay {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .card-option-btn {
+      width: 80%;
+      padding: 0.75rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      transition: background 0.3s ease, transform 0.2s ease;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+
+    .card-option-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .card-option-btn.delete {
+      color: #ff8a8a;
+      background: rgba(255, 138, 138, 0.1);
+    }
+
+    .card-option-btn.delete:hover {
+      background: rgba(255, 138, 138, 0.25);
+    }
+
+    .global-blur-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .global-blur-overlay.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .particle {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+      pointer-events: none;
+      z-index: 110;
+    }
+
+    .edit-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -40%);
+      width: 90%;
+      max-width: 440px;
+      padding: 2.5rem;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .edit-modal.active {
+      transform: translate(-50%, -50%);
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .edit-modal h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+
     /* ============== ADD PERSON PAGE ============== */
     .add-form-card {
       max-width: 560px;
       padding: 2.5rem;
+      margin: 0 auto;
     }
 
     .add-form-card h2 {
@@ -547,6 +684,7 @@
     .settings-card {
       max-width: 560px;
       padding: 2.5rem;
+      margin: 0 auto;
     }
 
     .settings-card h2 {
@@ -609,6 +747,49 @@
       transform: translateX(18px);
     }
 
+    /* Theme Selector */
+    .theme-selector {
+      display: flex;
+      background: rgba(72, 71, 74, 0.25);
+      border-radius: var(--radius-pill);
+      padding: 0.25rem;
+      gap: 0.25rem;
+    }
+    
+    body.light-mode .theme-selector {
+      background: rgba(0, 0, 0, 0.08);
+    }
+    
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .theme-btn.active {
+      background: var(--glass-bg);
+      color: var(--text-primary);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    body.light-mode .theme-btn.active {
+      background: #ffffff;
+      color: #1a1a1c;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .theme-btn i {
+      width: 14px;
+      height: 14px;
+    }
+
     /* ============== Responsive ============== */
     @media (max-width: 1024px) {
       .live-view-grid {
@@ -666,6 +847,24 @@
   </style>
 </head>
 <body>
+  <div class="global-blur-overlay" id="global-blur" onclick="closeEditMode()"></div>
+
+  <!-- Edit Profile Modal -->
+  <div class="edit-modal glass" id="edit-modal">
+    <h3>Edit Profile Attributes</h3>
+    <div class="form-row">
+      <label>Full Name</label>
+      <input type="text" id="edit-name" value="">
+    </div>
+    <div class="form-row">
+      <label>Relationship</label>
+      <input type="text" id="edit-relation" value="">
+    </div>
+    <div class="form-submit-row" style="display: flex; gap: 1rem; margin-top: 2rem;">
+      <button class="btn-primary" style="flex: 1; justify-content: center;" onclick="saveEdit()">Save Changes</button>
+      <button class="btn-secondary" style="flex: 1; justify-content: center;" onclick="closeEditMode()">Cancel</button>
+    </div>
+  </div>
 
   <div class="dashboard">
 
@@ -705,20 +904,18 @@
 
       <!-- Bottom: Profile + Logout -->
       <div class="sidebar-bottom">
-        <div class="profile-popover" id="profile-popover">
-          <button class="popover-item" onclick="switchPage('settings', null)">
-            <i data-feather="settings"></i> Settings
-          </button>
-          <button class="popover-item">
-            <i data-feather="help-circle"></i> Help
-          </button>
-        </div>
 
         <div class="droplet-container">
-          <button class="profile-trigger" id="profile-trigger" onclick="togglePopover()">
+          <button class="profile-trigger" id="profile-trigger">
             <div class="user-avatar">JS</div>
           </button>
           <span class="bubble-label">Jaya S.</span>
+        </div>
+
+        <div class="droplet-container">
+          <div class="droplet" data-page="settings" onclick="switchPage('settings', this)">
+            <i data-feather="settings"></i>
+          </div>
         </div>
 
         <div class="droplet-container">
@@ -737,26 +934,22 @@
       <div class="page-section active" id="page-live-view">
         <div class="page-header">
           <h1 class="page-title">Live View</h1>
-          <div class="status-indicator">
-            <div class="status-dot"></div>
-            <span>Camera Active</span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem;">
+            <div class="status-indicator">
+              <div class="status-dot"></div>
+              <span>Camera Active</span>
+            </div>
+            <div class="status-indicator">
+              <div class="status-dot" style="background: #a855f7;"></div>
+              <span>Microphone Active</span>
+            </div>
           </div>
         </div>
         <div class="live-view-grid">
-          <div class="webcam-placeholder">
-            <i data-feather="video" class="placeholder-icon"></i>
-            <span class="placeholder-text">Webcam feed will appear here</span>
-            <span class="powered-by">Powered by OpenCV + face_recognition</span>
-          </div>
-          <div class="last-recognized glass">
-            <div class="lr-header">
-              <i data-feather="clock" class="lr-icon"></i>
-              <span>Last Recognized</span>
-            </div>
-            <div class="lr-name">Priya Sharma</div>
-            <div class="lr-meta">Daughter · Last visit: 2 days ago</div>
-            <div class="lr-info"><strong>Last discussed:</strong> Your medications and Sunday lunch</div>
-            <div class="lr-info"><strong>Reminder:</strong> She is bringing food tomorrow</div>
+          <div class="webcam-placeholder" style="height: calc(100vh - 200px); max-height: 800px; border-width: 3px;">
+            <i data-feather="video" class="placeholder-icon" style="width: 64px; height: 64px; margin-bottom: 1rem;"></i>
+            <span class="placeholder-text" style="font-size: 1.25rem;">Main Software Visual Feed</span>
+            <span class="powered-by">Ready for Processing</span>
           </div>
         </div>
       </div>
@@ -767,25 +960,57 @@
           <h1 class="page-title">Profiles</h1>
         </div>
         <div class="profiles-grid">
-          <div class="profile-card glass">
+          <div class="profile-card glass" id="profile-1">
+            <div class="card-options-overlay">
+              <button class="card-option-btn edit" onclick="toggleEditCard('profile-1', event)">
+                <i data-feather="edit-2"></i> Edit Card
+              </button>
+              <button class="card-option-btn delete" onclick="deleteCard('profile-1', event)">
+                <i data-feather="trash-2"></i> Delete Card
+              </button>
+            </div>
             <div class="profile-avatar a1">PS</div>
             <div class="profile-name">Priya Sharma</div>
             <div class="profile-relation">Daughter</div>
             <span class="profile-badge">Last visit: 2 days ago</span>
           </div>
-          <div class="profile-card glass">
+          <div class="profile-card glass" id="profile-2">
+            <div class="card-options-overlay">
+              <button class="card-option-btn edit" onclick="toggleEditCard('profile-2', event)">
+                <i data-feather="edit-2"></i> Edit Card
+              </button>
+              <button class="card-option-btn delete" onclick="deleteCard('profile-2', event)">
+                <i data-feather="trash-2"></i> Delete Card
+              </button>
+            </div>
             <div class="profile-avatar a2">RS</div>
             <div class="profile-name">Rahul Sharma</div>
             <div class="profile-relation">Son</div>
             <span class="profile-badge">Last visit: 5 days ago</span>
           </div>
-          <div class="profile-card glass">
+          <div class="profile-card glass" id="profile-3">
+            <div class="card-options-overlay">
+              <button class="card-option-btn edit" onclick="toggleEditCard('profile-3', event)">
+                <i data-feather="edit-2"></i> Edit Card
+              </button>
+              <button class="card-option-btn delete" onclick="deleteCard('profile-3', event)">
+                <i data-feather="trash-2"></i> Delete Card
+              </button>
+            </div>
             <div class="profile-avatar a3">AK</div>
             <div class="profile-name">Anita Kumar</div>
             <div class="profile-relation">Caregiver</div>
             <span class="profile-badge">Last visit: Today</span>
           </div>
-          <div class="profile-card glass">
+          <div class="profile-card glass" id="profile-4">
+            <div class="card-options-overlay">
+              <button class="card-option-btn edit" onclick="toggleEditCard('profile-4', event)">
+                <i data-feather="edit-2"></i> Edit Card
+              </button>
+              <button class="card-option-btn delete" onclick="deleteCard('profile-4', event)">
+                <i data-feather="trash-2"></i> Delete Card
+              </button>
+            </div>
             <div class="profile-avatar a4">DM</div>
             <div class="profile-name">Dr. Mehta</div>
             <div class="profile-relation">Doctor</div>
@@ -843,8 +1068,56 @@
         <div class="page-header">
           <h1 class="page-title">Settings</h1>
         </div>
+        
+        <div class="settings-card glass" style="margin-bottom: 2rem;">
+          <h2>User Details</h2>
+          <div class="form-row">
+            <label>Your Name</label>
+            <input type="text" id="user-setting-name" value="Jaya S.">
+          </div>
+          <div class="form-row">
+            <label>Email Address</label>
+            <input type="email" id="user-setting-email" value="jaya@example.com">
+          </div>
+          <div class="form-submit-row">
+            <button class="btn-primary" onclick="saveUserDetails()">Save Details</button>
+          </div>
+        </div>
+
+        <div class="settings-card glass" style="margin-bottom: 2rem;">
+          <h2>Data Management</h2>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Export Profiles Data</h4>
+              <p>Download a JSON backup of all registered profiles and memories</p>
+            </div>
+            <button class="btn-ghost" onclick="exportData()">Export Data</button>
+          </div>
+          <div class="setting-item" style="border-top: none; padding-top: 0;">
+            <div class="setting-info">
+              <h4>Retrieve Memory</h4>
+              <p>Restore default profiles or recover locally saved profiles</p>
+            </div>
+            <button class="btn-secondary" onclick="retrieveMemory()"><i data-feather="refresh-cw" style="width:14px; height:14px; margin-right:4px;"></i> Restore</button>
+          </div>
+        </div>
+
         <div class="settings-card glass">
           <h2>Preferences</h2>
+          <div class="setting-item">
+            <div class="setting-info">
+              <h4>Appearance</h4>
+              <p>Toggle between dark and light themes</p>
+            </div>
+            <div class="theme-selector">
+              <button class="theme-btn dark active" id="btn-theme-dark" onclick="setTheme('dark')">
+                <i data-feather="moon"></i> Dark
+              </button>
+              <button class="theme-btn light" id="btn-theme-light" onclick="setTheme('light')">
+                <i data-feather="sun"></i> Light
+              </button>
+            </div>
+          </div>
           <div class="setting-item">
             <div class="setting-info">
               <h4>Auto-detect faces</h4>
@@ -897,7 +1170,6 @@
         target.classList.add('active');
         gsap.fromTo(target, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' });
       }
-      closePopover();
     }
 
     // ============ DROplet PHYSICS (Organic Float) ============
@@ -931,29 +1203,227 @@
       });
     }
 
-    // ============ PROFILE POPOVER ============
-    const popover = document.getElementById('profile-popover');
-    let popoverOpen = false;
 
-    function togglePopover() {
-      popoverOpen = !popoverOpen;
-      popover.classList.toggle('open', popoverOpen);
+
+    // ============ PROFILE CARD ACTIONS ============
+    let currentlyEditingId = null;
+
+    function toggleEditCard(cardId, event) {
+      if (event) event.stopPropagation();
+      const card = document.getElementById(cardId);
+      const blur = document.getElementById('global-blur');
+      const modal = document.getElementById('edit-modal');
+      
+      const name = card.querySelector('.profile-name').innerText;
+      const relation = card.querySelector('.profile-relation').innerText;
+      
+      document.getElementById('edit-name').value = name;
+      document.getElementById('edit-relation').value = relation;
+      
+      currentlyEditingId = cardId;
+      blur.classList.add('active');
+      modal.classList.add('active');
     }
 
-    function closePopover() {
-      popoverOpen = false;
-      popover.classList.remove('open');
+    function saveEdit() {
+      if(!currentlyEditingId) return;
+      const card = document.getElementById(currentlyEditingId);
+      card.querySelector('.profile-name').innerText = document.getElementById('edit-name').value;
+      card.querySelector('.profile-relation').innerText = document.getElementById('edit-relation').value;
+      closeEditMode();
+      saveMemory(); // Persist changes
     }
 
-    // Close popover on outside click
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.sidebar-bottom') && popoverOpen) {
-        closePopover();
+    function closeEditMode() {
+      currentlyEditingId = null;
+      document.getElementById('global-blur').classList.remove('active');
+      document.getElementById('edit-modal').classList.remove('active');
+    }
+
+    function deleteCard(cardId, event) {
+      if (event) event.stopPropagation();
+      const card = document.getElementById(cardId);
+      
+      const rect = card.getBoundingClientRect();
+      const scrollX = window.scrollX || window.pageXOffset;
+      const scrollY = window.scrollY || window.pageYOffset;
+      const centerX = rect.left + rect.width / 2 + scrollX;
+      const centerY = rect.top + rect.height / 2 + scrollY;
+      
+      for (let i = 0; i < 40; i++) {
+        createParticle(centerX, centerY);
       }
-    });
+
+      gsap.to(card, {
+        scale: 0.2,
+        opacity: 0,
+        duration: 0.4,
+        ease: "back.in(2)",
+        onComplete: () => {
+          gsap.to(card, {
+            width: 0,
+            paddingLeft: 0,
+            paddingRight: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            opacity: 0,
+            duration: 0.4,
+            ease: "power2.inOut",
+            onComplete: () => {
+               card.style.display = 'none';
+               saveMemory(); // Save after hiding
+            }
+          });
+        }
+      });
+    }
+
+    function createParticle(x, y) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      
+      const colors = ['#85adff', '#6c9fff', '#badeff', '#a4c2ff'];
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.boxShadow = `0 0 8px ${p.style.background}`;
+      
+      document.body.appendChild(p);
+
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = 80 + Math.random() * 150;
+      const targetX = x + Math.cos(angle) * velocity;
+      const targetY = y + Math.sin(angle) * velocity;
+
+      gsap.fromTo(p, 
+        { x: x, y: y, scale: Math.random() * 1.5 + 0.5, opacity: 1 },
+        { 
+          x: targetX, 
+          y: targetY, 
+          opacity: 0, 
+          scale: 0,
+          duration: 0.6 + Math.random() * 0.5, 
+          ease: "power2.out",
+          onComplete: () => p.remove() 
+        }
+      );
+    }
+
+    // ============ LOCAL MEMORY SYSTEM ============
+    function saveMemory() {
+      try {
+        const cards = [];
+        document.querySelectorAll('.profile-card').forEach(c => {
+          if (c.style.display !== 'none' && !c.classList.contains('add-card')) {
+            cards.push({
+              id: c.id,
+              avatarClass: c.querySelector('.profile-avatar').className,
+              avatarText: c.querySelector('.profile-avatar').innerText,
+              name: c.querySelector('.profile-name').innerText,
+              relation: c.querySelector('.profile-relation').innerText,
+              badge: c.querySelector('.profile-badge').innerText
+            });
+          }
+        });
+        localStorage.setItem('memorylens_profiles_data', JSON.stringify(cards));
+      } catch(e) { console.warn("Memory save skipped", e); }
+    }
+
+    function loadMemory() {
+      try {
+        const saved = localStorage.getItem('memorylens_profiles_data');
+        if (saved) {
+          const cards = JSON.parse(saved);
+          const grid = document.querySelector('.profiles-grid');
+          const addCard = grid.querySelector('.add-card');
+          
+          Array.from(grid.children).forEach(c => {
+            if (!c.classList.contains('add-card')) c.remove();
+          });
+
+          cards.forEach(data => {
+            const html = `
+            <div class="profile-card glass" id="${data.id}">
+              <div class="card-options-overlay">
+                <button class="card-option-btn edit" onclick="toggleEditCard('${data.id}', event)">
+                  <i data-feather="edit-2"></i> Edit Card
+                </button>
+                <button class="card-option-btn delete" onclick="deleteCard('${data.id}', event)">
+                  <i data-feather="trash-2"></i> Delete Card
+                </button>
+              </div>
+              <div class="${data.avatarClass}">${data.avatarText}</div>
+              <div class="profile-name">${data.name}</div>
+              <div class="profile-relation">${data.relation}</div>
+              <span class="profile-badge">${data.badge}</span>
+            </div>`;
+            addCard.insertAdjacentHTML('beforebegin', html);
+          });
+          
+          if(window.feather) feather.replace();
+        }
+      } catch(e) { console.warn("Memory load skipped", e); }
+    }
+
+    function retrieveMemory() {
+      loadMemory();
+      alert("Memory retrieved successfully from local storage!");
+      switchPage('profiles', document.querySelector('[data-page=profiles]'));
+    }
+
+    function exportData() {
+      try {
+        const saved = localStorage.getItem('memorylens_profiles_data') || "[]";
+        const blob = new Blob([saved], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "memorylens_profiles_backup.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } catch(e) { alert("Export failed"); }
+    }
+
+    function saveUserDetails() {
+      const name = document.getElementById('user-setting-name').value;
+      if (!name) return;
+      document.querySelector('.user-avatar').innerText = name.substring(0, 2).toUpperCase();
+      const triggers = document.querySelectorAll('.bubble-label');
+      triggers.forEach(el => {
+         if (el.parentNode.querySelector('.profile-trigger')) {
+            el.innerText = name;
+         }
+      });
+      alert("User details saved successfully!");
+    }
+
+    // ============ THEME TOGGLE ============
+    function setTheme(mode) {
+      const body = document.body;
+      const btnDark = document.getElementById('btn-theme-dark');
+      const btnLight = document.getElementById('btn-theme-light');
+      
+      if (mode === 'light') {
+        body.classList.add('light-mode');
+        if(btnLight) btnLight.classList.add('active');
+        if(btnDark) btnDark.classList.remove('active');
+      } else {
+        body.classList.remove('light-mode');
+        if(btnDark) btnDark.classList.add('active');
+        if(btnLight) btnLight.classList.remove('active');
+      }
+    }
 
     // ============ ENTRANCE ============
     window.addEventListener('load', () => {
+      // Check saved profiles
+      try {
+        if (!localStorage.getItem('memorylens_profiles_data')) {
+          saveMemory(); // initialize default DB
+        } else {
+          loadMemory();
+        }
+      } catch(e) {}
+
       initDropletPhysics();
       gsap.fromTo('.sidebar', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' });
       gsap.from('.droplet-container', { opacity: 0, scale: 0.8, stagger: 0.1, duration: 0.6, ease: 'back.out(1.7)', delay: 0.3 });
